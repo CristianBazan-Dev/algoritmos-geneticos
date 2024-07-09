@@ -341,3 +341,193 @@ Por último, la operación de selección nos permite aplicar un componente eliti
 **1.6 Algoritmo genético como caja negra**
 Realizaremos la función main que ejecutara el algoritmo. 
 
+```
+def main:
+    random.seed(42)
+    CXPB, MUTB, NGEN = 0.5, 0.2, 20
+    pop = toolbox.population()
+    hof = pop.HallOfFame(1)
+    
+```
+
+__1.6.1 Configuración algoritmo genético__
+La primera sentencia define la semilla del generador de números aleatorios. 
+
+```
+    random.seed(42)
+```
+
+Luego, se definen tres parámetros importantes para el funcionamiento del algoritmo: 
+```
+    CXPB, MUTB, NGEN = 0.5, 0.2, 20
+```
+
+
+- La probabilidad del cruce (CXPB)
+- La probabilidad de mutación (MUTPB)
+- El número de generaciónes (NGEN)
+
+En cuanto a las probabilidades: 
+- 0.5 para el cruce (50%).
+- 0.2 para la de mutación (20%). 
+- 20 para el número de generaciones.
+
+Luego comenzamos con la generación de la población inicial metiante el método __population__ del objeto __toolbox__
+
+```
+    pop = toolbox.population()
+```
+
+Se define un objeto hof de tipo HallOfFame para almacenar al mejor individuo encontrado a lo largo de las generaciones 
+
+```
+    hof = tools.HallOfFame(1)
+```
+El método HOF recibe dos parámetros: 
+- maxsize: Número de individuos a almacenar. 
+- similar: Una función para comparar si dos individuos son iguales. Si no se pone nada, utilizará por defecto el kétodo operator.eq del módulo operator. 
+
+En este caso, maxsize es 1. Este es el mecanismo que implementa deap para no perder al mejor indivudo a lo largo de la evolución del algoritmo. 
+Con el algoritmo eaSimple se puede dar el caso de que la mejor solución se pierda debido a los operadores geneticos. Es por ello que el hof es importante. 
+
+La clase se encuentar definida en el submódulo tools. En cada generación del algoritmo genético, el objeto hof es actualizado mediante el método update de manera transparente para nosotros. El método update recibe como entrada la población actual y adctualiza el contenido del objeto hof. 
+
+En este caso, no se ha utilizado elitismo para que los mejores individuos avancen directamente. 
+
+Se define un objeto para generar las estadísticas de la población a lo largo de las generaciones del algoritmo. Este objeto es de tipo __Statistics__ y se encuentra definido en el submódulo tools. 
+
+```
+stats = tools.Statistics(lambda ind: ind.fitness.values)
+```
+
+Al crear el objetom, se debe indicar sobre qué atributo de los individuyos se van a generar las estadísticas. En este caso, se generan sobre el __fitness__ de los individuos mediante calculos de la media, la desviación típica, el mínimo y el máximo.
+
+```
+stats.register("avg", np.mean)
+stats.register("std", np.std)
+stats.register("min", np.min)
+stats.register("max", np.max)
+```
+
+Dichos cálculos se realizaran de manera transparente. El objeto stats tiene un método denominado __compile__ que recibe como entrada la población que permite generar las estadísticas. A dicho método se lo llama internamente en cada generación del algoritmo. 
+
+```
+La librería deap doispone de varias implementaciones de algoritmos genéticos listos para ser utilizados de manera sencilla como cajas negras o black boxes.
+```
+
+Se encuentran disponibles en el submódulo __algorithms__
+
+```
+***Algoritmo genético: EaSimple***
+
+Es una de la sversiones simplificadas que hay disponibles en deap.
+
+Sus pasos son los siguientes: 
+    1. Evaluación de la población inicial.
+    2. Mientras no se alcanza el límite de generaciones: 
+        a - Selección de individuos para participar de las operaciones genéticas.
+        b - Creación de la siguiente generación mediante cruce y/o mutación de los individuos seleccionados. 
+        c - Evaluación de la generación creada.
+La librería lo incorpora mediante __algorithm.eaSimple__
+
+Los parámetrosa indicar son: 
+- __population__ : Población inicial del algoritmo. 
+- __toolbox__ : Objeto caja de herramientas con las siguientes funciones registradas: función objetivo, mecanismos de selección, cruce y mutación.
+- __expb__ : Probabilidad de cruce
+- __mutb__ : Probabilidad de mutación en tanto por uno. 
+- __ngen__ : Número de generaciones del algoritmo.
+- __stats__ : Objeto estadístico con las funciones registradas. 
+- __halloffame__ : Objeto de tipo HallOfFame para almacenar la mejor solución encontrada.
+- __verbose__ : Atributo que indica si se deben mostrar las estadísticas en cada iteración o no. 
+
+Como resultado, devuelve: 
+- Población final del algoritmo.
+- Objeto __logbook__ con todo el registro de evolución.
+```
+
+**Algoritmo genético completo**
+```
+def main():
+    random.seed(42)
+    CXPB, MUTPB, NGEN = 0.5, 0.3, 20
+    
+    pop = toolbox.population()
+    hof = tools.HallOfFame(1)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
+    stats.register("avg", np.mean)
+    stats.register("std", np.std)
+    stats.register("min", np.min)
+    stats.register("max", np.max)
+    logbook = tools.Logbook()
+    pop, logbook = algorithms.eaSimple(pop, toolbox, cxpb = CXPB, mutpb= MUTPB, ngen=NGEN,stats=stats, halloffame=hof, verbose=True)
+    
+    return hof, logbook
+
+if __name__ == '__main__':
+    best, log = main() 
+    print("Mejor fitness: %f" %best[0].fitness.values)
+    print("Mejor individuo: %s" %best[0])
+```
+
+La función main devolverá el mejor individuo así como la población final. 
+```
+gen     nevals  avg     std     min     max    
+0       30      77.9162 24.544  26.4289 116.497
+1       21      98.2664 15.5883 58.7221 123.194
+2       21      110.245 15.2091 69.9853 134.549
+3       18      122.618 6.15311 112.506 134.549
+4       20      128.053 6.19413 112.506 134.549
+5       27      132.693 3.40979 123.194 135.502
+6       20      134.58  1.17325 128.543 135.502
+7       23      135.075 0.44733 134.549 136.018
+8       19      130.718 24.4923 -1      136.018
+9       19      135.712 0.488261        133.55  136.018
+10      20      131.378 24.5831         -1      136.018
+11      19      135.847 0.639702        133.377 136.018
+12      21      135.947 1.0292          132.011 139.613
+13      16      127.243 34.2913         -1      139.613
+14      17      136.378 1.07856         136.018 139.613
+15      21      136.857 1.5206          136.018 139.613
+16      20      137.881 1.75342         136.018 139.613
+17      25      125.311 42.1119         -1      139.613
+18      20      139.266 1.22636         133.473 139.613
+19      19      134.92  25.2398         -1      139.613
+20      21      134.887 25.2345         -1      139.613
+Mejor fitness: 139.613474
+Mejor individuo: [98.0306448749573, -99.40782072027488]
+```
+Los datos correspoden a: 
+- __gen__ : número de generación. 
+- __neval__ : número de evaluaciones.
+- __avg__ : desempeño medio de la población 
+- __min__: valor mínimo de la población 
+- __max__ : valor máximo dela población. 
+
+Ademas del mejor fitness y el mejor individuo. 
+
+Debido a que el objeto hof se almacena como lista, se puede obtener cada individuo que forma parte de él avanzando con indices. 
+Para ello, usamos el atributo
+
+```
+fitness.values
+```
+
+Es importante remarcar que, en este caso, sabemos el máximo de la función y estamos optimizando en bae a eso. Conocer el resultado óptimo puede hacer que pensemos que la función no opero como debería, pero hay que establecerse en el marco de pensamiento dónde no conocemos el valor. 
+
+
+Se extraen las siguientes conclusiones: 
+
+- A lo largo de las generaciones, el valor medio (avg) se va incrementando debido a la mutación de los individuos. 
+- La desviación típica (std) va disminuyendo. Esto indica que los individuos cada vez son más parecidos debido al elitismo por el proceso de selección. 
+- El valor máaximo (max) va aumentando a lo largo de las generaciones. Muy positivo ys que es el indicar de buen funcionamiento. 
+
+La columna __nevals__ no condice con el número de individuos de la población debido a las operaciones de cruce y mutación son probabiliísticas. Por ello, un individuo seleccionado no tiene por qué ser modificado. 
+
+```
+Todo individuo que, aun siendo seleccionado, no haya participado de ninguna operación genética, no será evaluado, ahorrando así operaciones redundantes.
+```
+
+Un aspecto que no está optimizado en deap es que si dos individuos son iguales no se evalúen dos veces. Esto es así porque el atributo que hace que un indivudo sea evaluado o no es la validez de su fitness, __atributo valid del fitness__. Al ser modificado, su valid pasa a false. 
+
+Todos los individuos con un fitness invalido han de ser evaluados. Esto se realiza mediante el eaSimple. Por lo tanto, aunque a lo largo de la distintas generaciones se generen individuos iguales, estos serán evaluados de nuevo. 
+

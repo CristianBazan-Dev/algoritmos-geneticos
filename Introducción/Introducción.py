@@ -52,8 +52,8 @@ def main():
     CXPB, MUTPB, NGEN = 0.5, 0.3, 20
     
     pop = toolbox.population()
-    hof = tools.HallfOfFame(1)
-    stats = tools.Statistics(lambda ind: ind.fitnessvalues)
+    hof = tools.HallOfFame(1)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", np.mean)
     stats.register("std", np.std)
     stats.register("min", np.min)
@@ -66,8 +66,8 @@ def main():
 if __name__ == '__main__':
     best, log = main() 
     print("Mejor fitness: %f" %best[0].fitness.values)
-    print("Mejor individuo: %f" %best[0])
-    plot_evolucion(log)
+    print("Mejor individuo: %s" %best[0])
+    # plot_evolucion(log)
     
     
 
